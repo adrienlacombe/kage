@@ -101,6 +101,13 @@
         }
       ],
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9462f88e-484d-4221-b0c5-d4144eb68513"
+      }
+    },
+    "owner": "adrienlacombe"
   }
 }
