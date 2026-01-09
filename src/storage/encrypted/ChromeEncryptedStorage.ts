@@ -4,13 +4,13 @@ import EncryptedStorage, { AuthPrompt } from "./EncryptedStorage";
 import { stringToBytes } from "@/crypto/utils/encoding";
 
 /**
- * Web Encrypted Storage using non-extractable CryptoKey.
+ * Chrome Extension Encrypted Storage using non-extractable CryptoKey.
  * 
  * Values are encrypted with AES-256-GCM using a key stored in IndexedDB.
  * The key is marked as non-extractable, so raw key bytes are never exposed to JavaScript.
  * Storage keys are hashed with SHA-256 for deterministic lookup.
  */
-export default class WebEncryptedStorage implements EncryptedStorage {
+export default class ChromeEncryptedStorage implements EncryptedStorage {
     private keyManager: WebCryptoKeyManager;
     private initialized: boolean = false;
 
@@ -45,10 +45,20 @@ export default class WebEncryptedStorage implements EncryptedStorage {
             const serviceKey = this.getService(key);
             const hashedKey = await this.keyManager.hashKey(serviceKey);
             
-            const encryptedValue = localStorage.getItem(hashedKey);
+            const response = await this.sendMessage({
+                type: 'STORAGE_GET',
+                keys: [hashedKey]
+            });
+
+            if (!response.success) {
+                LOG.error(`Failed to get item ${key} from Chrome storage:`, response.error);
+                return null;
+            }
+
+            const encryptedValue = response.data[hashedKey];
             
             if (!encryptedValue) {
-                LOG.debug(`No value found for key ${key} in web encrypted storage`);
+                LOG.debug(`No value found for key ${key} in Chrome storage`);
                 return null;
             }
 
@@ -62,7 +72,7 @@ export default class WebEncryptedStorage implements EncryptedStorage {
 
             return new TextDecoder().decode(decryptedBytes);
         } catch (e) {
-            LOG.error(`WebEncryptedStorage.getItem error for key ${key}:`, e);
+            LOG.error(`ChromeEncryptedStorage.getItem error for key ${key}:`, e);
             return null;
         }
     }
@@ -90,11 +100,20 @@ export default class WebEncryptedStorage implements EncryptedStorage {
             }
 
             const encryptedValue = this.bytesToBase64(encryptedBytes);
-            localStorage.setItem(hashedKey, encryptedValue);
+            
+            const response = await this.sendMessage({
+                type: 'STORAGE_SET',
+                data: { [hashedKey]: encryptedValue }
+            });
+
+            if (!response.success) {
+                LOG.error(`Failed to set item ${key} in Chrome storage:`, response.error);
+                return false;
+            }
 
             return true;
         } catch (e) {
-            LOG.error(`WebEncryptedStorage.setItem error for key ${key}:`, e);
+            LOG.error(`ChromeEncryptedStorage.setItem error for key ${key}:`, e);
             return false;
         }
     }
@@ -108,9 +127,17 @@ export default class WebEncryptedStorage implements EncryptedStorage {
 
             const serviceKey = this.getService(key);
             const hashedKey = await this.keyManager.hashKey(serviceKey);
-            localStorage.removeItem(hashedKey);
+            
+            const response = await this.sendMessage({
+                type: 'STORAGE_REMOVE',
+                keys: [hashedKey]
+            });
+
+            if (!response.success) {
+                LOG.error(`Failed to remove item ${key} from Chrome storage:`, response.error);
+            }
         } catch (e) {
-            LOG.error(`WebEncryptedStorage.removeItem error for key ${key}:`, e);
+            LOG.error(`ChromeEncryptedStorage.removeItem error for key ${key}:`, e);
         }
     }
 
@@ -134,5 +161,22 @@ export default class WebEncryptedStorage implements EncryptedStorage {
             bytes[i] = binaryString.charCodeAt(i);
         }
         return bytes;
+    }
+
+    private sendMessage(message: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (typeof chrome === 'undefined' || !chrome.runtime) {
+                reject(new Error('Chrome runtime not available'));
+                return;
+            }
+
+            chrome.runtime.sendMessage(message, (response) => {
+                if (chrome.runtime.lastError) {
+                    reject(new Error(chrome.runtime.lastError.message));
+                    return;
+                }
+                resolve(response);
+            });
+        });
     }
 }

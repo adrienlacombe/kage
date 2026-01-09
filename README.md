@@ -27,7 +27,7 @@ KAGE offers a comprehensive suite of features for managing both public and confi
 - Ragequit: Not supported at this stage ([details here](https://docs.tongo.cash/sdk/operations/ragequit.html)).
 
 **ERC-20 token supported (Tongo Instances)**:
-- Mainnet: ETH, STRK, wBTC, USDC, USDT, DAI
+- Mainnet: ETH, STRK, wBTC, USDC.e, USDC, USDT, DAI
 - Sepolia: ETH, STRK, USDC
 
 **Security Architecture**: Seed phrases are encrypted with ChaCha20-Poly1305 and stored in secure, hardware-backed device storage—iOS Keychain on iOS and Android Keystore (with TEE/StrongBox support) on Android. In settings, you can optionally enable passphrase protection and biometric authentication. Biometrics gate access to sensitive operations, and all cryptographic keys remain on the device at all times.
@@ -58,8 +58,6 @@ Make sure to [set up your environment first](https://docs.expo.dev/get-started/s
 
 3. First, create an `.env` file in the root of the project with the following content:
 ```
-EXPO_PUBLIC_RPC_SN_MAIN="https://..."
-EXPO_PUBLIC_WS_SN_MAIN="wss://..."
 EXPO_PUBLIC_RPC_SN_SEPOLIA="https://..."
 EXPO_PUBLIC_WS_SN_SEPOLIA="wss://..."
 ```
@@ -76,6 +74,13 @@ npx expo run:ios
 # Or Android with
 npx expo run:android
 ```
+
+> [!WARNING]  
+> **Disclaimer:** KAGE was built as an exploration **mobile-first** wallet. There is also the ability to generate a Chrome extension out of it by running:
+> ```bash
+> npm run extension
+> ```
+> As mentioned above it is **not production-ready**, has not undergone security audits, and **should not be used to manage real funds**.
 
 ## Tongo Cash
 

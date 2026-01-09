@@ -147,7 +147,7 @@ export const SeedPhraseInput = ({
                 }}
                 onKeyPress={({ nativeEvent }) => handleKeyPress(index, nativeEvent.key)}
                 onSubmitEditing={() => handleSubmitEditing(index)}
-                placeholder={t('forms.seedPhrase.wordPlaceholder', { number: index + 1 })}
+                placeholder={t('forms.seedPhrase.wordPlaceholder', { index: index + 1 })}
                 placeholderTextColor={colorTokens['text.muted']}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -253,6 +253,7 @@ const themedStyleSheet = ThemedStyleSheet.create((colorTokens) => ({
     ...fontStyles.ubuntuMono.regular,
     color: colorTokens['text.primary'],
     paddingVertical: spaceTokens[3],
+    outlineStyle: 'none'
   },
   wordInputFocused: {
     color: colorTokens['brand.accent'],

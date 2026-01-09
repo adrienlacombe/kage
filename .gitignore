@@ -39,8 +39,9 @@ yarn-error.*
 # idea
 .idea
 
-# generated native folders
+# generated items
 /ios
 /android
+/extension
 
 .env
